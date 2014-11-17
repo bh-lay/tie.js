@@ -83,9 +83,6 @@ window.util = window.util || {};
 		
 		this.refresh();
 		
-		if(this.scopeDom.css('position') == 'static'){
-			this.scopeDom.css('position','relative');
-		}
 	//	var delay;
 		scrollDom.on('scroll',function(){
 		//	console.log('滚着呢--')
