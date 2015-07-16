@@ -1,7 +1,7 @@
 /**
  * @author bh-lay
  * @github https://github.com/bh-lay/tie.js
- * @modified 2014-7-25 0:37
+ * @modified 2015-7-16 19:03
  *  location fox
  * 处理既要相对于某个模块固定，又要在其可视时悬浮的页面元素
  * util.tie({
@@ -12,9 +12,15 @@
  * 
  */
 
-window.util = window.util || {};
 
-(function(exports){
+(function(global,factory_fn){
+	global.util = global.util || {};
+	global.util.tie = factory_fn(global);
+	
+	global.define && define(function(){
+		return global.util.tie;
+	});
+})(window,function(window){
 	var isIE67 = false;
 	if(navigator.appName == "Microsoft Internet Explorer"){
 		var version = navigator.appVersion.split(";")[1].replace(/[ ]/g,"");
@@ -34,7 +40,6 @@ window.util = window.util || {};
 				}else if(this.state == 'mid'){
 					top = scrollTop - this.minScrollTop;
 				}
-				alert(this.state + top);
 				this.dom.animate({
 					'top' : top
 				},100).css({
@@ -64,9 +69,14 @@ window.util = window.util || {};
 	})();
 
 	function INIT(param){
+		if( !(this instanceof INIT)){
+			return new INIT(param);
+		}
 		var this_slide = this;
 		var param = param || {};
 		this.dom = param['dom'];
+		var scroll_delay;
+		this.$scrollDom = param['scrollDom'] || $(window);
 		//从属dom
 		this.scopeDom = param['scopeDom'];
 		//原本的position属性
@@ -78,30 +88,28 @@ window.util = window.util || {};
 		this.minScrollTop = null;
 		this.maxScrollTop = null;
 		this.state = 'min';
-		
-		var scrollDom = param['scrollDom'] || $(window);
+		this._scroll_listener = function(){
+			clearTimeout(scroll_delay);
+			scroll_delay = setTimeout(function(){
+				this_slide.refresh();
+			},0);
+		}
 		
 		this.refresh();
 		
-	//	var delay;
-		scrollDom.on('scroll',function(){
-		//	console.log('滚着呢--')
-	//		clearTimeout(delay);
-	//		delay = setTimeout(function(){
-		//		console.log('滚完了--->>>>>>>>')
-		//		console.log(' ')
-				this_slide.refresh();
-	//		},10);
-		});
+		if(this.scopeDom.css('position') == 'static'){
+			this.scopeDom.css('position','relative');
+		}
+		this.$scrollDom.on('scroll',this._scroll_listener);
 	}
-	var doc = $(document);
+	var $doc = $(document);
 	INIT.prototype.refresh = function (){
 		this.height = this.dom.height();
 		this.cntH = this.scopeDom.outerHeight();
 		this.minScrollTop = this.scopeDom.offset().top - this.fix_top;
 		this.maxScrollTop = this.minScrollTop + this.cntH - this.height;
 	//	this.dom.parent().height(this.height);
-		var scrollTop = doc.scrollTop();
+		var scrollTop = $doc.scrollTop();
 		if(scrollTop < this.minScrollTop){
 			this.state = 'min';
 		}else if(scrollTop > this.maxScrollTop){
@@ -109,14 +117,10 @@ window.util = window.util || {};
 		}else{
 			this.state = 'mid';
 		}
-		//console.log(this.state,scrollTop ,this.minScrollTop);
 		fix_position.call(this,scrollTop);
 	};
-	exports.tie = function(param){
-		return new INIT(param);
-	};
-})(window.util);
-
-window.define && function(require,exports,module){
-	return window.util.tie;
-};
+	INIT.prototype.destroy = function(){
+		this.$scrollDom.unbind('scroll',this._scroll_listener);
+	}
+	return INIT;
+});
