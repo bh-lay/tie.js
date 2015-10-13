@@ -1,7 +1,7 @@
 /**
  * @author bh-lay
  * @github https://github.com/bh-lay/tie.js
- * @modified 2015-9-9 00:10
+ * @modified 2015-10-13 18:57
  *  location fox
  * 处理既要相对于某个模块固定，又要在其可视时悬浮的页面元素
  * util.tie({
@@ -66,7 +66,8 @@
 		if( !(this instanceof INIT)){
 			return new INIT(param);
 		}
-		var me = this;
+		var me = this,
+			scroll_delay;
 		param = param || {};
 		//悬浮dom
 		me.dom = param.dom;
@@ -77,6 +78,8 @@
 		me.fix_top = param.fixed_top || 0;
 		me.minScrollTop = null;
 		me.maxScrollTop = null;
+		//当定位方式发生变化时
+		me.onPositionChange = param.onPositionChange || null;
 		//原本的position属性
 		me._position_first = me.dom.css('position');
 		
@@ -99,13 +102,17 @@
 			this.minScrollTop = this.scopeDom.offset().top - this.fix_top;
 			this.maxScrollTop = this.minScrollTop + cntH - domH;
 
-			var scrollTop = private_$doc.scrollTop();
+			var scrollTop = private_$doc.scrollTop(),
+				state_before = this.state;
 			if(scrollTop <= this.minScrollTop){
 				this.state = 'min';
 			}else{
 				this.state = scrollTop >= this.maxScrollTop ? 'max' : 'mid';
 			}
 			fix_position.call(this,scrollTop);
+			if(state_before != this.state){
+				this.onPositionChange && this.onPositionChange.call(this,this.state);
+			}
 		},
 		destroy: function(){
 			this.$scrollDom.unbind('scroll',this._scroll_listener);
