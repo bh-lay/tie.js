@@ -96,13 +96,13 @@
 		} : function(elem, type, handler) {
 			elem.attachEvent("on" + type, handler);
 		};
-	/**
+	/**removeHandler
 	* 事件解除
 	* elem:节点
 	* type:事件类型
 	* handler:回调
 	*/
-	var removeHandler = window.removeEventListener ? function(elem, type, handler) {
+	var  = window.removeEventListener ? function(elem, type, handler) {
 			elem.removeEventListener(type, handler, false);
 		} : function(elem, type, handler) {
 			elem.detachEvent("on" + type, handler);
@@ -237,7 +237,7 @@
 			this.ghostDom.style.height = getClient(this.dom).height + 'px';
 		},
 		destroy: function(){
-			bindHandler(this.scrollDom,'scroll',this._scroll_listener);
+			removeHandler(this.scrollDom,'scroll',this._scroll_listener);
 			setCss(this.dom,{
 				position: 'relative',
 				top: getClient(this.dom).top - getClient(this.ghostDom).top
